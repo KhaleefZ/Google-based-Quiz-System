@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./Backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017
+      - DB_NAME=quiz_db
+      - GOOGLE_CREDS_FILE=/app/credentials.json
+    depends_on:
+      - mongo
+    volumes:
+      - ./Backend:/app
+
+  frontend:
+    # UPDATED PATH: Points to the inner folder
+    build: ./Frontend/quiz-frontend 
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./Frontend/quiz-frontend:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+
+volumes:
+  mongo_data:
